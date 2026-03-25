@@ -3,10 +3,15 @@ layout: default
 title: Home
 ---
 
-Jaewon Jeong  
-Researcher in technical regulations, standards, and industrial policy
+<p align="center">
+  <img src="/assets/profile.png" width="140" style="border-radius:50%;" />
+</p>
 
-I focus on overseas technical regulations and certification systems, supporting how industries navigate global requirements.  
-My work bridges technology, regulation, and international standards.
+## Jaewon Jeong
+
+**Researcher working on technical regulations, standards, and global markets**
+
+I work on understanding how technical regulations and certification systems shape global trade.  
+My focus is on helping industries navigate these requirements, connecting technology, policy, and international standards.
 
 → Learn more about me in [About](/about/)
