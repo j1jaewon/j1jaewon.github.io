@@ -1,7 +1,5 @@
 title: Jaewon Jeong
 email: jjw0818@ktl.re.kr
-description: >-
-  A minimal personal site.
 
 baseurl: ""
 url: "https://j1jaewon.github.io"
@@ -10,3 +8,7 @@ theme: minima
 
 plugins:
   - jekyll-feed
+
+header_pages:
+  - index.md
+  - about.md
