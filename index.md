@@ -3,6 +3,6 @@ layout: home
 title: Home
 ---
 
-Welcome.
+Hi, I'm Jaewon.
 
-This is my personal site.
+I write about regulations, tech, and research.
