@@ -3,6 +3,10 @@ layout: home
 title: Home
 ---
 
-Hi, I'm Jaewon.
+Jaewon Jeong  
+Researcher in technical regulations, standards, and industrial policy
 
-I write about regulations, tech, and research.
+I work on overseas technical regulation analysis and certification systems.  
+My background includes display R&D and international standardization.
+
+→ Learn more about me in [About](/about/)
