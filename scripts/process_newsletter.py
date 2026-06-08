@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
 C2P Newsletter Processor
-------------------------
+-------------------------
 Usage:
-  python3 scripts/process_newsletter.py inbox/latest.eml
+  python3 scripts/process_newsletter.py [path-to.eml]
 
-Reads a C2P Alert .eml file, extracts all news/regulation items,
-scores them by Korean export relevance, and writes a Jekyll post draft
-to _posts/YYYY-MM-DD-c2p-news.md
+Reads a C2P Alert .eml, picks top 2 news by Korean market relevance,
+and writes two files:
+  - output/YYYY-MM-DD-email-draft.md  : copy-paste ready email to team
+  - output/YYYY-MM-DD-selection.md    : full ranked list for reference
 """
 
 import email
@@ -18,24 +19,47 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 
 # ---------------------------------------------------------------------------
-# Scoring criteria (재원 선생님이 설계한 기준)
+# Team member names (edit as needed)
 # ---------------------------------------------------------------------------
-KOREA_EXPORT_KEYWORDS = [
-    'korea', 'korean', '한국', 'battery', 'batteries', 'ev', 'electric vehicle',
-    'display', 'semiconductor', 'electronics', 'appliance', 'textile', 'cosmetic',
-    'chemical', 'pfas', 'reach', 'rohs', 'ecodesign', 'energy efficiency',
-    'ccc', 'china', 'eu', 'europe', 'vietnam', 'indonesia', 'malaysia',
-    'saudi', 'uae', 'middle east', 'halal', 'wto', 'tbt',
+TEAM = ['영서 연구원님', '현지 연구원님']
+
+# ---------------------------------------------------------------------------
+# Scoring
+# ---------------------------------------------------------------------------
+HIGH_IMPACT_COUNTRIES = [
+    'eu', 'europe', 'european', 'china', 'united states', 'usa', 'vietnam',
+    'indonesia', 'malaysia', 'saudi', 'uae', 'japan', 'india', 'korea',
+    'brazil', 'mexico', 'turkey', 'thailand',
 ]
+HIGH_IMPACT_SECTORS = [
+    'battery', 'batteries', 'electric vehicle', 'ev ', 'display', 'semiconductor',
+    'electronics', 'appliance', 'textile', 'cosmetic', 'chemical', 'pfas',
+    'reach', 'rohs', 'ecodesign', 'energy efficiency', 'ccc', 'wto', 'tbt',
+    'artificial intelligence', 'ai ', 'cybersecurity', 'solar', 'photovoltaic',
+    'led', 'lighting', 'medical', 'food', 'halal', 'critical raw material',
+    'digital', 'data', 'product safety',
+]
+STATUS_BOOST = {'in force': 3, 'approved': 2, 'proposed': 1}
 
-HIGH_IMPACT_COUNTRIES = ['china', 'eu', 'europe', 'united states', 'usa', 'vietnam',
-                          'indonesia', 'malaysia', 'saudi arabia', 'uae', 'japan']
 
-HIGH_IMPACT_SECTORS = ['battery', 'batteries', 'electric', 'display', 'semiconductor',
-                        'electronics', 'appliance', 'textile', 'cosmetic', 'chemical',
-                        'ai', 'artificial intelligence', 'cybersecurity']
+def score_item(title, status='', projects=''):
+    text = (title + ' ' + status + ' ' + projects).lower()
+    score = 0
+    for c in HIGH_IMPACT_COUNTRIES:
+        if c in text:
+            score += 3
+    for s in HIGH_IMPACT_SECTORS:
+        if s in text:
+            score += 2
+    for st, boost in STATUS_BOOST.items():
+        if st in text:
+            score += boost
+    return score
 
 
+# ---------------------------------------------------------------------------
+# Parse .eml
+# ---------------------------------------------------------------------------
 def parse_eml(filepath):
     with open(filepath, 'rb') as f:
         msg = email.message_from_bytes(f.read())
@@ -47,197 +71,183 @@ def parse_eml(filepath):
             break
 
     if not html_content:
-        raise ValueError("No HTML content found in .eml file")
+        raise ValueError("No HTML part found in .eml")
 
-    date_str = msg.get('Date', '')
-    return html_content, date_str
+    return html_content, msg.get('Date', '')
 
 
 def extract_items(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
     lines = [l.strip() for l in soup.get_text(separator='\n').split('\n') if l.strip()]
 
+    # Extract all links: title → href
+    link_map = {}
+    for a in soup.find_all('a', href=True):
+        text = a.get_text(strip=True)
+        href = a['href']
+        if len(text) > 30 and 'compliance2product.com' in href:
+            # Clean up href (quoted-printable artifacts)
+            href = href.replace('=3D', '=').replace('\n', '').replace(' ', '')
+            link_map[text] = href
+
     items = []
-
-    # --- News & Analysis section ---
-    in_news = False
     i = 0
     while i < len(lines):
-        if lines[i] == 'News & Analysis':
-            in_news = True
-            i += 1
-            continue
-        if lines[i] == 'Standards and regulations':
-            in_news = False
-        if in_news and i + 1 < len(lines):
-            line = lines[i]
-            # Long lines that aren't bylines or UI text
-            if (len(line) > 60
-                    and not line.startswith('by ')
-                    and line not in ('Read full article', '→', 'Unassessed', 'Relevant', 'Maybe', 'No')
-                    and not line.startswith('On ')):
-                # Grab description from next lines
-                desc = ''
-                for j in range(i + 1, min(i + 4, len(lines))):
-                    if lines[j].startswith('by ') or lines[j] in ('Read full article', '→'):
-                        break
-                    if lines[j].startswith('On ') or len(lines[j]) > 30:
-                        desc = lines[j]
-                        break
-                items.append({
-                    'section': 'News & Analysis',
-                    'type': 'NEWS',
-                    'title': line,
-                    'description': desc,
-                    'status': '',
-                    'projects': [],
-                })
-        i += 1
+        line = lines[i]
 
-    # --- Standards and regulations section ---
-    i = 0
-    while i < len(lines):
-        if lines[i] in ('REGULATION', 'STANDARD', 'SUPPORTING'):
-            item_type = lines[i]
+        # News & Analysis
+        if (i + 1 < len(lines)
+                and lines[i + 1].startswith('by ')
+                and len(line) > 50
+                and line not in ('Read full article', 'News & Analysis')):
+            desc = ''
+            for j in range(i + 2, min(i + 5, len(lines))):
+                if lines[j].startswith('On ') and len(lines[j]) > 30:
+                    desc = lines[j][:300]
+                    break
+            url = link_map.get(line, '')
+            items.append({
+                'type': 'NEWS',
+                'title': line,
+                'description': desc,
+                'status': '',
+                'projects': '',
+                'url': url,
+            })
+
+        # Regulation / Standard / Supporting
+        elif line in ('REGULATION', 'STANDARD', 'SUPPORTING'):
             title = lines[i + 1] if i + 1 < len(lines) else ''
-            status = ''
-            projects = []
-            # Look ahead for Status and Projects
-            for j in range(i + 2, min(i + 10, len(lines))):
+            status, projects = '', ''
+            for j in range(i + 2, min(i + 12, len(lines))):
                 if lines[j] == 'Status:' and j + 1 < len(lines):
                     status = lines[j + 1]
                 if lines[j] == 'Projects:' and j + 1 < len(lines):
+                    parts = []
                     for k in range(j + 1, min(j + 5, len(lines))):
-                        if lines[k] in ('REGULATION', 'STANDARD', 'SUPPORTING', 'Status:', 'Projects:'):
+                        if lines[k] in ('REGULATION', 'STANDARD', 'SUPPORTING',
+                                        'Status:', 'Projects:', 'New', 'Older Added',
+                                        'Status Changes', 'Dates'):
                             break
-                        if lines[k] not in ('Unassessed', 'Relevant', 'Maybe', 'No', 'Entered into Force'):
-                            projects.append(lines[k])
+                        parts.append(lines[k])
+                    projects = ', '.join(parts)
                     break
+            url = link_map.get(title, '')
             if title and len(title) > 20:
                 items.append({
-                    'section': 'Standards and regulations',
-                    'type': item_type,
+                    'type': line,
                     'title': title,
                     'description': '',
                     'status': status,
                     'projects': projects,
+                    'url': url,
                 })
         i += 1
 
     return items
 
 
-def score_item(item):
-    text = (item['title'] + ' ' + item['description'] + ' ' + ' '.join(item['projects'])).lower()
-    score = 0
-
-    # Export impact: mention of high-impact countries
-    for country in HIGH_IMPACT_COUNTRIES:
-        if country in text:
-            score += 3
-
-    # Sector relevance: Korean export-heavy sectors
-    for sector in HIGH_IMPACT_SECTORS:
-        if sector in text:
-            score += 2
-
-    # General Korea-export keywords
-    for kw in KOREA_EXPORT_KEYWORDS:
-        if kw in text:
-            score += 1
-
-    # Boost for "In force" (immediate action needed)
-    if 'in force' in item['status'].lower():
-        score += 2
-
-    # Boost for high approval probability
-    if 'news' in item['section'].lower():
-        score += 1  # News/Analysis items are pre-curated
-
-    return score
-
-
-def generate_post(items, date_str, eml_path):
-    today = datetime.now().strftime('%Y-%m-%d')
-
-    # Score and rank
-    scored = [(score_item(item), item) for item in items]
-    scored.sort(key=lambda x: x[0], reverse=True)
-    top_items = scored[:5]  # Top 5 for human review; mark top 2 as recommended
-
+# ---------------------------------------------------------------------------
+# Generate outputs
+# ---------------------------------------------------------------------------
+def generate_email_draft(top2, today):
     lines = [
-        '---',
-        'layout: post',
-        f'title: "글로벌 인증·규제 뉴스 ({today})"',
-        f'date: {today}',
-        'categories: [regulation, newsletter]',
-        '---',
+        f'Subject: 인증 뉴스 정리 부탁드립니다.',
         '',
-        f'> 📧 Source: C2P Alert ({today}) — AI 선별 초안, 담당자 최종 검토 필요',
+        '안녕하세요, 연구원님들.',
+        '수출지원센터 정재원입니다.',
         '',
-        '## ✅ 추천 뉴스 (상위 2건)',
+        '아래의 뉴스 정리를 부탁드립니다.',
         '',
     ]
-
-    for rank, (score, item) in enumerate(top_items[:2], 1):
-        lines.append(f'### {rank}. {item["title"]}')
-        if item['status']:
-            lines.append(f'- **상태**: {item["status"]}')
-        if item['projects']:
-            lines.append(f'- **분야**: {", ".join(item["projects"])}')
-        if item['description']:
-            lines.append(f'- **개요**: {item["description"]}')
-        lines.append(f'- **관련성 점수**: {score}점')
-        lines.append('')
-        lines.append('**요약** (팀원 작성 후 이 자리에 추가)')
-        lines.append('')
-        lines.append('---')
+    for idx, (score, item) in enumerate(top2):
+        name = TEAM[idx] if idx < len(TEAM) else f'연구원{idx+1}님'
+        lines.append(f'{idx + 1}. {name}')
+        lines.append(f'{item["title"]}')
+        if item['url']:
+            lines.append(f'링크: {item["url"]}')
         lines.append('')
 
-    lines.append('## 📋 전체 선별 목록 (검토용)')
-    lines.append('')
-    lines.append('| 순위 | 구분 | 제목 | 상태 | 점수 |')
-    lines.append('|------|------|------|------|------|')
-    for rank, (score, item) in enumerate(top_items, 1):
-        marker = '⭐' if rank <= 2 else ''
-        title_short = item['title'][:60] + ('...' if len(item['title']) > 60 else '')
-        lines.append(f'| {rank}{marker} | {item["type"]} | {title_short} | {item["status"][:30]} | {score} |')
-
-    lines.append('')
-    lines.append('---')
-    lines.append('*본 초안은 AI가 자동 생성했습니다. 발행 전 담당자 검토 필수.*')
-
+    lines += ['감사합니다.', '정재원 드림']
     return '\n'.join(lines)
 
 
+def generate_selection_report(scored, today):
+    lines = [
+        f'# C2P 뉴스 선별 리포트 — {today}',
+        '',
+        '## ✅ 선정된 뉴스 2건',
+        '',
+    ]
+    for idx, (score, item) in enumerate(scored[:2]):
+        lines += [
+            f'### {idx + 1}. {item["title"]}',
+            f'- **유형**: {item["type"]}',
+        ]
+        if item['status']:
+            lines.append(f'- **상태**: {item["status"]}')
+        if item['projects']:
+            lines.append(f'- **분야**: {item["projects"]}')
+        if item['url']:
+            lines.append(f'- **링크**: {item["url"]}')
+        lines += [f'- **관련성 점수**: {score}점', '']
+
+    lines += [
+        '---',
+        '## 📋 전체 후보 목록',
+        '',
+        '| 순위 | 유형 | 제목 | 상태 | 점수 |',
+        '|------|------|------|------|------|',
+    ]
+    for rank, (score, item) in enumerate(scored, 1):
+        mark = ' ⭐' if rank <= 2 else ''
+        t = item['title'][:55] + ('…' if len(item['title']) > 55 else '')
+        s = item['status'][:25] + ('…' if len(item['status']) > 25 else '')
+        lines.append(f'| {rank}{mark} | {item["type"]} | {t} | {s} | {score} |')
+
+    lines += ['', '---', '*AI 자동 선별 — 최종 선정은 담당자 판단으로 조정 가능*']
+    return '\n'.join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 def main():
     if len(sys.argv) < 2:
-        # Default to latest .eml in inbox/
         inbox = os.path.join(os.path.dirname(__file__), '..', 'inbox')
         emls = sorted([f for f in os.listdir(inbox) if f.endswith('.eml')])
         if not emls:
-            print("Usage: python3 scripts/process_newsletter.py <path-to.eml>")
+            print("Usage: python3 scripts/process_newsletter.py <path.eml>")
             sys.exit(1)
         eml_path = os.path.join(inbox, emls[-1])
     else:
         eml_path = sys.argv[1]
 
     print(f"Processing: {eml_path}")
-    html_content, date_str = parse_eml(eml_path)
+    html_content, _ = parse_eml(eml_path)
     items = extract_items(html_content)
     print(f"Extracted {len(items)} items")
 
-    post = generate_post(items, date_str, eml_path)
+    scored = sorted(
+        [(score_item(it['title'], it['status'], it['projects']), it) for it in items],
+        key=lambda x: x[0], reverse=True
+    )
 
     today = datetime.now().strftime('%Y-%m-%d')
-    out_dir = os.path.join(os.path.dirname(__file__), '..', '_posts')
-    out_path = os.path.join(out_dir, f'{today}-c2p-news.md')
+    out_dir = os.path.join(os.path.dirname(__file__), '..', 'output')
+    os.makedirs(out_dir, exist_ok=True)
 
-    with open(out_path, 'w', encoding='utf-8') as f:
-        f.write(post)
+    # Email draft
+    email_path = os.path.join(out_dir, f'{today}-email-draft.md')
+    with open(email_path, 'w', encoding='utf-8') as f:
+        f.write(generate_email_draft(scored[:2], today))
+    print(f"📧 이메일 초안: {email_path}")
 
-    print(f"✅ Draft post written to: {out_path}")
-    return out_path
+    # Selection report
+    report_path = os.path.join(out_dir, f'{today}-selection.md')
+    with open(report_path, 'w', encoding='utf-8') as f:
+        f.write(generate_selection_report(scored, today))
+    print(f"📋 선별 리포트: {report_path}")
 
 
 if __name__ == '__main__':
