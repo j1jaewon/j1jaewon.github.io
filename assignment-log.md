@@ -3,6 +3,44 @@
 
 ---
 
+## 원본 과제 지문 (전문)
+
+### Level 0: Archive (required)
+Externalize your tacit knowledge using the /wiki skill of oh-my-claudecode (https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
+
+For the source knowledge, you can use one of the following: 1) your original writings if you have written some notes; 2) the past conversation with your choice of AI agents (Gemini, Claude, ChatGPT); 3) interview yourself.
+
+**Question 0-1:** Describe the process you took to build llm-wiki.
+**Question 0-2:** What are the key insights you found from wiki. What are the hidden insights in your tacit knowledge.
+
+### Level 1: Schedule (required)
+Design and run one daily autonomous routine using either scheduled feature of Claude Cowork or Automations on Codex. The task could be related with your class team project or something personal to you.
+
+**Question 1-1:** What have you asked the agent to do?
+**Question 1-2:** What are your key lessons you learn from learning autonomous tasks?
+**Question 1-3:** What are key elements to make the task useful to you?
+
+### Level 2: Persistent (optional, bonus +10)
+Build a persistent autonomous agent using Hermes Agent (https://github.com/nousresearch/hermes-agent) on your docker or VPS.
+
+If you would like to install on your machine, please make sure that it is on docker (https://hermes-agent.nousresearch.com/docs/user-guide/docker). Otherwise, your autonomous agent might make a really serious impact on your own files.
+
+**Question 2-1:** What have you asked the persistent agent to do?
+**Question 2-2:** What are your key lessons you learn from learning the persistent agent?
+**Question 2-3:** What are key elements to make the persistent agent useful to you?
+
+### Level 3: Company-Relevant Sandbox (optional, bonus +10)
+Pick a workflow you actually do at your current company (or your most recent one), something you'd love to automate but can't get IT permission for in time. Reproduce it OUTSIDE the company perimeter using synthetic or public data, then write the 1-pager you would send to your manager.
+
+Safety rule: Do NOT use real internal data, credentials, or customer personally identifiable information (PII). If a workflow can't be desensitized, pick a different one.
+
+**Deliverable:** (a) the working sandbox agent, (b) a 1-page proposal memo addressed to a real stakeholder at your company (you don't have to send it), (c) a short reflection on what would change if this ran on the real data inside the company perimeter.
+
+**Question 3-1:** Which workflow did you pick, and why is this one worth closing the loop on at your company?
+**Question 3-2:** If you handed this proposal to your manager on Monday, what is the first objection you would expect, and how would you answer it?
+
+---
+
 ## 프로필 요약 (정재원 / Jaewon Jeong)
 - **소속**: 한국산업기술시험원(KTL) 수출지원센터 연구원
 - **전문분야**: 해외 기술규제(TBT) 분석, 디스플레이/웨어러블 국제표준화(IEC TC110, TC124)
