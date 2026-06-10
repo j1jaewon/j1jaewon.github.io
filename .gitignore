@@ -9,3 +9,4 @@ _site/
 
 # OS
 .DS_Store
+sources/*.pdf
