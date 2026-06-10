@@ -54,6 +54,10 @@ Safety rule: Do NOT use real internal data, credentials, or customer personally 
 
 ### Q0-1: 프로세스
 
+#### 소스 선택 — 왜 이 세 가지인가
+
+위키의 소스로 Claude 대화, ChatGPT 대화, 자기 인터뷰를 골랐다. AI와의 대화 내용이 위키 구축의 기반이 될 것 같아서였다. 그런데 막상 대화를 들여다보니 예상과 달랐다. 보안 때문에 말을 아낀 탓인지, 대화 내용은 내가 *누구인지*보다 *어떤 작업을 했는지*에만 집중되어 있었다. 사람이 빠진 작업 로그에 가까웠다. 그래서 자기 인터뷰를 추가했다. 인터뷰를 진행하면서 AI와 접점이 많은 업무를 본격적으로 탐색하기 시작했고, 그게 위키의 방향을 잡아주었다.
+
 #### Step 1 — oh-my-claudecode 설치
 - `npm i -g oh-my-claude-sisyphus@latest` 로 v4.14.5 전역 설치
 - `/wiki` 커맨드 파일 위치 확인: `/opt/node22/lib/node_modules/oh-my-claude-sisyphus/commands/wiki.md`
@@ -69,7 +73,7 @@ Safety rule: Do NOT use real internal data, credentials, or customer personally 
   - `sources/chatgpt/` — ChatGPT export (conversations x2, chat.html, user.json)
   - `sources/gemini/` — 준비 중
 - 보안 이슈: GitHub Personal Access Token이 파일 내 포함되어 업로드 차단됨 → 민감정보 제거 후 재시도
-- 예상치 못한 발견: 피싱성 메시지에 속아 AI 채팅창에 토큰을 입력한 적이 있었는데, Claude 메모리에 그대로 남아있는 걸 확인했다. 즉시 삭제해서 해결했지만, 대화 이력을 직접 들여다보기 전까지는 몰랐을 것이다.
+- 예상치 못한 발견: 예전에 AI 채팅창에 토큰을 입력한 적이 있었는데, 내용이 축약되는 것만 신경 썼지 대화 이력에 고스란히 남아있을 줄은 몰랐다. 위키 구축 과정에서 Claude 메모리를 직접 들여다보다 발견했고, 즉시 삭제해서 해결했다.
 
 #### Step 4 — 자기 인터뷰 진행
 - 이력서(PDF) 기반 + 6개 인터뷰 질문으로 암묵지 외재화
@@ -86,7 +90,7 @@ Safety rule: Do NOT use real internal data, credentials, or customer personally 
 
 ### Q0-2: 핵심 인사이트 (인터뷰에서 발굴된 암묵지)
 
-1. **툴이 바뀌어도 지식은 남는다** — 항상 AI 툴이 교체될 때마다 맥락을 어떻게 이어갈지가 고민이었다. Claude, ChatGPT, 자기 인터뷰 대화를 하나의 위키로 통합하고 나니, 어떤 툴로 갈아타더라도 내 지식 베이스는 유지된다는 안도감이 생겼다. 위키를 만들기 전까지는 이 불안감 자체를 의식하지 못했다.
+1. **툴이 바뀌어도 지식은 남는다** — 지난주 사내 보안 강화로 Windows 전면 업그레이드가 있었다. 컴퓨터가 리부트되면서 프로그램을 재설치해야 했는데, 호환 문제로 Codex가 설치되지 않았고 일부 기능도 막혔다. 로컬에 남아있던 작업 내용이 싸그리 사라졌다. 예전엔 C 드라이브 파일 백업이 전부였는데, 이제는 LLM과 함께 쌓아온 컨텍스트, 로컬 에이전트 설정, 학습시킨 흐름들을 어떻게 보관할 것인가가 새로운 과제가 됐다. 위키를 만들고 나서야 그 불안이 한결 줄었다. 툴이 바뀌어도 내 지식 베이스는 여기 있다는 것을 알기 때문에.
 
 2. **대화 이력에 무엇이 남아있는지 아무도 모른다** — 인터뷰 대화를 정리하다가 예전에 AI 채팅창에 입력했던 토큰이 Claude 메모리에 그대로 남아있는 걸 발견했다. 즉시 삭제해서 해결했지만, 이 과정이 없었다면 영원히 몰랐을 것이다. 위키 구축은 단순한 지식 정리가 아니라 보안 감사이기도 했다.
 
