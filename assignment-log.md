@@ -133,19 +133,55 @@ Safety rule: Do NOT use real internal data, credentials, or customer personally 
 - Hermes Agent (https://github.com/nousresearch/hermes-agent) Docker로 설치
 - 지속 실행되는 자율 에이전트 구축
 
+### 구현 환경
+- **플랫폼**: Windows 11, Docker Desktop + PowerShell
+- **에이전트**: NousResearch Hermes Agent (`nousresearch/hermes-agent` Docker 이미지)
+- **모델**: Claude Opus 4.6 (Anthropic provider)
+- **실행 명령어**:
+  ```powershell
+  docker run -it -v ${HOME}/.hermes:/root/.hermes -e ANTHROPIC_API_KEY=sk-ant-... nousresearch/hermes-agent
+  ```
+
 ### Q2-1: 에이전트에게 맡긴 작업
-- (구현 후 작성 예정)
+
+**태스크**: WTO TBT/SPS 최신 통보문 모니터링 및 한국어 요약
+
+```
+WTO ePing (https://eping.wto.org) API를 사용해서 오늘 날짜 기준 최신 TBT/SPS 통보문 상위 5건을 가져와서 다음 형식으로 한국어로 요약해줘:
+- 통보번호, 통보국, 유형, 대상 제품 (HS코드 포함), 주요 내용, 의견제출 마감일
+한국 수출 기업에 영향이 큰 규제 변경사항 위주로 정렬해줘.
+```
+
+**실행 결과 (2026-06-10)**:
+- WTO ePing API에서 당일 통보문 5건 성공적으로 수집
+- 한국어 요약 자동 생성:
+  1. G/SPS/N/EU/956 — EU 동물사료용 향미화합물 승인 갱신
+  2. G/SPS/N/EU/957 — EU 제3국산 식품·사료 공식 관리 강화 (아르헨티나 땅콩 아플라톡신, 인도 커민씨 농약 검사빈도 상향 등)
+  3. G/SPS/N/KOR/846 — 한국 꿀벌 사료용 꿀·벌화분 동물검역 추가 (의견제출 마감 2026-08-09)
+  4. G/TBT/N/BHR/704/Rev.1 — GCC 7개국 잼·젤리·마멀레이드 기술규정
+  5. G/TBT/N/KWT/683/Rev.1 — GCC 쿠웨이트 측 동일 통보
 
 ### Q2-2: Persistent Agent에서 배운 교훈
-- (구현 후 작성 예정)
+
+1. **에이전트는 실행 컨텍스트를 스스로 구성한다** — 어떤 API를 호출하고, 어떤 필드를 추출하고, 어떻게 포맷할지를 에이전트가 자체적으로 판단했다. "ePing API를 써라"고만 했는데도 엔드포인트 탐색 → 파라미터 설정 → 한국어 포맷 구성까지 스스로 수행. Level 1의 스크립트 자동화와 달리 **로직 자체를 에이전트가 작성**하는 구조.
+
+2. **지속성(persistence)의 의미** — Docker 볼륨(`~/.hermes`)에 에이전트 메모리·설정이 저장된다. 컨테이너를 재시작해도 이전 대화 맥락·설정이 유지되어 "처음부터 다시 설명하는" 비용이 없다. 이것이 일반 ChatGPT 세션과의 핵심 차이.
+
+3. **크레딧 비용의 현실** — 첫 실행은 "credit balance too low" 오류로 차단됐다. API 기반 에이전트는 실행 전에 과금 체계를 반드시 확인해야 한다. 한 번 실행 비용은 약 $0.05~0.07(Opus 기준)으로 저렴하지만, 상시 구동 에이전트는 누적 비용 설계가 필요하다.
+
+4. **모델 선택이 에이전트 성능에 직결** — Opus는 복잡한 API 탐색·구조화에 강하지만 비용이 높다. Haiku는 5분의 1 가격이지만 복잡한 멀티스텝 태스크에서 오류율이 높을 수 있다. 태스크 복잡도에 따라 모델을 달리 선택하는 설계가 필요.
 
 ### Q2-3: Persistent Agent를 유용하게 만드는 핵심 요소
-- (구현 후 작성 예정)
 
-### 구현 계획
-1. Docker 환경에서 Hermes Agent 설치 (공식 가이드: https://hermes-agent.nousresearch.com/docs/user-guide/docker)
-2. TBT 뉴스 모니터링 또는 뉴스레터 자동화 태스크 할당
-3. 장기 실행 결과 관찰 및 기록
+1. **명확한 태스크 범위** — 에이전트에게 "무엇이든 해줘"가 아니라 "WTO ePing → 상위 5건 → 한국어 요약"처럼 입력·처리·출력이 명확한 태스크를 주어야 결과 품질이 일관됨.
+
+2. **공개 API 활용** — 내부 시스템 없이도 공개 데이터 소스(WTO ePing API)로 실용적 결과물 생성 가능. 인증/권한 문제 없이 즉시 실행 가능한 소스를 우선 활용.
+
+3. **지속성 활용 설계** — 매번 같은 태스크라면 에이전트 메모리에 컨텍스트를 저장해두고 "오늘 통보문 요약해줘"처럼 짧은 명령어만으로 재사용할 수 있도록 초기 세팅에 투자.
+
+4. **Human-in-the-loop 검증 포인트** — 에이전트 출력을 그대로 사용하지 않고, 의견제출 마감일·기관명·HS코드 같은 핵심 필드는 원문 대조 검증 단계를 명시적으로 유지함. 자동화는 초안 생성까지, 최종 확인은 사람이.
+
+5. **비용 상한 설정** — 상시 구동 에이전트는 Anthropic 콘솔에서 월별 지출 한도를 설정하여 예상치 못한 과금 방지.
 
 ---
 
