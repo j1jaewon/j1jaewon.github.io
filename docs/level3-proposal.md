@@ -20,8 +20,8 @@
 
 | 단계 | 현재 (수작업) | 제안 (자동화) |
 |------|--------------|---------------|
-| 원문 수집 | ePing 수동 검색 | API 자동 수집 |
-| 번역 | ChatGPT 수동 붙여넣기 | Claude API 자동 번역 |
+| 원문 수집 | ePing·관보 수동 다운로드 | PDF 파일 에이전트에 전달 |
+| 번역 | ChatGPT 수동 붙여넣기 | Claude API PDF 직접 번역 |
 | 서식 적용 | 양식 수동 채우기 | master template 자동 매핑 |
 | 초안 출력 | 1–2시간 | **5분 이내** |
 | 담당자 역할 | 번역 + 구조화 + 초안 | **검토·검증·승인만** |
@@ -51,8 +51,9 @@
 
 ## 5. 파이프라인 구현 현황 (샌드박스)
 
-`scripts/tbt_report_pipeline.py` — WTO ePing API + Claude API 기반 작동 확인  
-`output/sandbox-reports/` — 자동 생성 보고서 초안 샘플
+`scripts/tbt_report_pipeline.py` — PDF 입력 + Claude API 기반 작동 확인  
+`output/sandbox-reports/2026-06-10-VNM408-report.md` — 베트남 VNM408 규정 자동 생성 초안 샘플  
+실행: `python3 scripts/tbt_report_pipeline.py sources/VNM408.pdf`
 
 ---
 

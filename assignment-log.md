@@ -155,13 +155,16 @@ Safety rule: Do NOT use real internal data, credentials, or customer personally 
 **TBT 심층분석보고서 자동 초안 생성 파이프라인**
 - 실제 업무: WTO TBT 통보문/해외 관보 → 번역 → 6장 구조 보고서 초안 작성 → 내부 검토 → knowtbt.kr 공개 게시
 - 현황: 주당 7-8건 처리, 건당 약 2일 소요 (번역 0.5일 + 구조화 0.5일 + 초안 1일)
-- 샌드박스: WTO ePing 공개 API 통보문 + Claude API → KTL master template 서식 초안 자동 생성
+- 샌드박스: 규제 원문 PDF 직접 입력 → Claude API 번역+구조 추출 → KTL master template 서식 초안 자동 생성
+- 실제 업무와 동일한 입력 방식: `python3 scripts/tbt_report_pipeline.py VNM408.pdf`
 
 ### 산출물
 - **(a) 작동하는 샌드박스 에이전트**: `scripts/tbt_report_pipeline.py`
-  - WTO ePing API 자동 수집 → Claude API 번역+구조 추출 → KTL 6장 보고서 서식 자동 매핑
-  - API key 없는 환경에서는 템플릿 구조만 생성 (graceful degradation)
-  - 출력: `output/sandbox-reports/YYYY-MM-DD-tbt-report-sandbox.md`
+  - **입력**: 규제 원문 PDF 파일 (베트남어, 영어 등 다국어 지원)
+  - **처리**: Claude API가 PDF를 직접 읽어 번역 + KTL 서식 필드 구조 추출
+  - **출력**: KTL 6장 보고서 초안 마크다운 → `output/sandbox-reports/`
+  - API key 없는 환경에서는 빈 템플릿 구조 생성 (graceful degradation)
+  - 테스트 파일: `sources/VNM408.pdf` (베트남 내무부 제품 위험도 분류 규정)
 - **(b) 1페이지 제안서**: `docs/level3-proposal.md` (수출지원센터장 수신)
 - **(c) 실제 데이터 반영 시 변화**: 아래 reflection 참고
 
@@ -169,7 +172,7 @@ Safety rule: Do NOT use real internal data, credentials, or customer personally 
 TBT 심층분석보고서는 KTL 수출지원센터의 핵심 대국민 서비스이자 주당 7-8건씩 생산하는 고반복 작업이다. 현재 ChatGPT를 활용하지만 번역→서식 적용→초안 작성까지 여전히 2일이 소요된다. 이 워크플로우를 선택한 이유:
 
 1. **반복성**: 동일한 6장 구조(규제 개요→세부내용→인증정보→주요국 비교→애로사항→대응방안)가 매번 반복되어 자동화 효율이 극대화됨
-2. **공개 데이터 가용성**: WTO ePing API로 통보문 무료 접근 가능 → 내부 데이터 없이 완전 재현 가능
+2. **공개 데이터 가용성**: WTO 통보문 및 각국 관보 PDF는 공개 자료 → 내부 데이터 없이 완전 재현 가능
 3. **측정 가능한 임팩트**: 처리 건수·소요 시간이 수치로 측정되어 자동화 효과를 입증하기 쉬움
 4. **Human-in-the-loop 자연스러운 유지**: 공공기관 보고서 특성상 AI 초안 → 담당자 검토·승인 구조가 자연스럽게 내포됨
 
