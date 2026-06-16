@@ -1,0 +1,48 @@
+name: TBT Report Pipeline (Level 3 Sandbox)
+
+on:
+  workflow_dispatch:
+    inputs:
+      pdf_url:
+        description: '규제 원문 PDF URL (공개 URL)'
+        required: false
+        default: ''
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Download PDF (URL 입력 시)
+        if: ${{ github.event.inputs.pdf_url != '' }}
+        run: |
+          mkdir -p sources
+          curl -L "${{ github.event.inputs.pdf_url }}" -o sources/input.pdf
+
+      - name: Run TBT report pipeline
+        run: |
+          PDF=$(ls sources/*.pdf 2>/dev/null | head -1)
+          if [ -z "$PDF" ]; then
+            echo "sources/ 폴더에 PDF 파일이 없습니다."
+            exit 1
+          fi
+          echo "처리 파일: $PDF"
+          python3 scripts/tbt_report_pipeline.py "$PDF"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Commit report draft
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add output/sandbox-reports/
+          git diff --staged --quiet || git commit -m "Auto: TBT report draft $(date +'%Y-%m-%d')"
+          git push

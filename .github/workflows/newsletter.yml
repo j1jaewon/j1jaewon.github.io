@@ -1,0 +1,36 @@
+name: C2P Newsletter Processor
+
+on:
+  push:
+    paths:
+      - 'inbox/*.eml'
+  workflow_dispatch:
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install beautifulsoup4
+
+      - name: Find latest .eml and process
+        run: |
+          EML=$(ls inbox/*.eml | sort | tail -1)
+          echo "Processing: $EML"
+          python3 scripts/process_newsletter.py "$EML"
+
+      - name: Commit output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add output/
+          git diff --staged --quiet || git commit -m "Auto: C2P newsletter output $(date +'%Y-%m-%d')"
+          git push

@@ -1,0 +1,276 @@
+# Assignment Log — LLM Wiki & Automation
+> 과제 제출 후 삭제 예정인 임시 파일
+
+---
+
+## 원본 과제 지문 (전문)
+
+### Level 0: Archive (required)
+Externalize your tacit knowledge using the /wiki skill of oh-my-claudecode (https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
+
+For the source knowledge, you can use one of the following: 1) your original writings if you have written some notes; 2) the past conversation with your choice of AI agents (Gemini, Claude, ChatGPT); 3) interview yourself.
+
+**Question 0-1:** Describe the process you took to build llm-wiki.
+**Question 0-2:** What are the key insights you found from wiki. What are the hidden insights in your tacit knowledge.
+
+### Level 1: Schedule (required)
+Design and run one daily autonomous routine using either scheduled feature of Claude Cowork or Automations on Codex. The task could be related with your class team project or something personal to you.
+
+**Question 1-1:** What have you asked the agent to do?
+**Question 1-2:** What are your key lessons you learn from learning autonomous tasks?
+**Question 1-3:** What are key elements to make the task useful to you?
+
+### Level 2: Persistent (optional, bonus +10)
+Build a persistent autonomous agent using Hermes Agent (https://github.com/nousresearch/hermes-agent) on your docker or VPS.
+
+If you would like to install on your machine, please make sure that it is on docker (https://hermes-agent.nousresearch.com/docs/user-guide/docker). Otherwise, your autonomous agent might make a really serious impact on your own files.
+
+**Question 2-1:** What have you asked the persistent agent to do?
+**Question 2-2:** What are your key lessons you learn from learning the persistent agent?
+**Question 2-3:** What are key elements to make the persistent agent useful to you?
+
+### Level 3: Company-Relevant Sandbox (optional, bonus +10)
+Pick a workflow you actually do at your current company (or your most recent one), something you'd love to automate but can't get IT permission for in time. Reproduce it OUTSIDE the company perimeter using synthetic or public data, then write the 1-pager you would send to your manager.
+
+Safety rule: Do NOT use real internal data, credentials, or customer personally identifiable information (PII). If a workflow can't be desensitized, pick a different one.
+
+**Deliverable:** (a) the working sandbox agent, (b) a 1-page proposal memo addressed to a real stakeholder at your company (you don't have to send it), (c) a short reflection on what would change if this ran on the real data inside the company perimeter.
+
+**Question 3-1:** Which workflow did you pick, and why is this one worth closing the loop on at your company?
+**Question 3-2:** If you handed this proposal to your manager on Monday, what is the first objection you would expect, and how would you answer it?
+
+---
+
+## 프로필 요약 (정재원 / Jaewon Jeong)
+- **소속**: 한국산업기술시험원(KTL) 수출지원센터 연구원
+- **전문분야**: 해외 기술규제(TBT) 분석, 디스플레이/웨어러블 국제표준화(IEC TC110, TC124)
+- **경력**: 한국무역협회(인턴) → 한국디스플레이산업협회(표준화 R&D) → KTL(현재)
+- **학력**: 서울시립대 경영학 학사 → KAIST 정보경영 석사 예정(2025.9~)
+- **IEC**: 2024 IEC Young Professional 한국대표
+
+---
+
+## Level 0: Archive — LLM Wiki 구축
+
+### Q0-1: 프로세스
+
+#### 소스 선택 — 왜 이 세 가지인가
+
+위키의 소스로 Claude 대화, ChatGPT 대화, 자기 인터뷰를 골랐다. AI와의 대화 내용이 위키 구축의 기반이 될 것 같아서였다. 그런데 막상 대화를 들여다보니 예상과 달랐다. 보안 때문에 말을 아낀 탓인지, 대화 내용은 내가 *누구인지*보다 *어떤 작업을 했는지*에만 집중되어 있었다. 사람이 빠진 작업 로그에 가까웠다. 그래서 자기 인터뷰를 추가했다. 인터뷰를 진행하면서 AI와 접점이 많은 업무를 본격적으로 탐색하기 시작했고, 그게 위키의 방향을 잡아주었다.
+
+#### Step 1 — oh-my-claudecode 설치
+- `npm i -g oh-my-claude-sisyphus@latest` 로 v4.14.5 전역 설치
+- `/wiki` 커맨드 파일 위치 확인: `/opt/node22/lib/node_modules/oh-my-claude-sisyphus/commands/wiki.md`
+
+#### Step 2 — /wiki 스킬 프로젝트에 설치
+- `.claude/commands/wiki.md` 로 복사
+- `.omc/wiki/` 디렉토리 생성 (페이지 저장소)
+- 브랜치 `claude/zealous-franklin-vx4wn` 에 커밋 & 푸시
+
+#### Step 3 — 소스 파일 정리
+- `sources/` 폴더 구조 생성:
+  - `sources/claude/` — Claude export (conversations, memories, projects)
+  - `sources/chatgpt/` — ChatGPT export (conversations x2, chat.html, user.json)
+  - `sources/gemini/` — 준비 중
+- 보안 이슈: GitHub Personal Access Token이 파일 내 포함되어 업로드 차단됨 → 민감정보 제거 후 재시도
+- 예상치 못한 발견: 예전에 AI 채팅창에 토큰을 입력한 적이 있었는데, 내용이 축약되는 것만 신경 썼지 대화 이력에 고스란히 남아있을 줄은 몰랐다. 위키 구축 과정에서 Claude 메모리를 직접 들여다보다 발견했고, 즉시 삭제해서 해결했다.
+
+#### Step 4 — 자기 인터뷰 진행
+- 이력서(PDF) 기반 + 6개 인터뷰 질문으로 암묵지 외재화
+- AI 활용 업무 3가지, 작업 흐름, AI 강점/한계, 미래 계획 정리
+
+#### Step 5 — Wiki 인제스트
+- `/wiki` 스킬로 인터뷰 내용 → `.omc/wiki/*.md` 생성
+- 카테고리: `professional-profile`, `ai-workflow`, `tbt-regulation`, `newsletter`, `future-plans`
+
+#### Step 6 — Wiki Lint
+- 고아 페이지, 교차 참조 오류 등 구조 검증
+
+#### 완성 후 발견한 한계
+위키를 다 만들고 나서 읽어보니, 특정 에피소드 하나에 꽂히면 거기에 가두는 느낌이 들었다. 작업 요약본이지 나를 분석한 결과가 아니었다. AI와의 대화는 내가 무엇을 했는지는 잘 담고 있었지만, 왜 그 판단을 했는지는 거의 없었다. 그래서 인터뷰가 더 중요했다 — 맥락을 가진 건 대화 기록이 아니라 나 자신이었다.
+
+---
+
+### Q0-2: 핵심 인사이트 (인터뷰에서 발굴된 암묵지)
+
+아래 인사이트는 위키 페이지에서 도출한 것이 아니라, 위키를 만드는 과정에서 스스로 발견한 것들이다. 위키는 작업 기록을 잘 담지만 판단의 맥락은 잘 담지 못한다 — 그래서 인터뷰가 필요했다.
+
+1. **AI의 역할을 "단계"로 쪼개고 있었다** — 위키를 정리하다 보니 나는 AI에게 "보고서를 써달라"고 한 적이 없었다. 번역, 추출, 초안, 검토를 분리하고, 각 단계에서 AI가 어디까지 할 수 있는지를 이미 알고 있었다. 의식하지 못했던 설계였다. 수업에서 Jagged Frontier 개념을 배운 이후 이걸 실무에 적극적으로 적용해보려 하고 있는데, 위키를 보면 이미 그 방식으로 일하고 있었다는 게 소름돋았다.
+
+2. **선별 기준을 직접 설계했다는 것** — 뉴스레터에서 AI가 사용하는 우선순위 기준(수출 파급력·규제 파급력·주제 중복성)은 어디서 가져온 게 아니다. TBT 업무를 하면서 "이게 중요하더라"고 몸으로 축적한 판단을 프롬프트로 명문화한 것이다. 이걸 글로 써보고 나서야, 내가 전문 판단을 재현 가능한 로직으로 바꿀 수 있다는 걸 처음 알았다.
+
+3. **Human-in-the-loop가 원칙이 아니라 습관이었다** — 모든 AI 활용이 "AI 초안 → 인간 검토 → 수정" 구조로 일관되어 있었다. 공공기관 보고서의 신뢰성 요건에 맞는 원칙인데, 의도해서 설계한 게 아니라 자연스럽게 형성된 습관이었다. 대부분의 사람이 AI 출력을 그대로 쓰는 것과 대조적이라는 걸 위키를 통해 외부에서 바라보고 나서야 알았다.
+
+4. **툴이 바뀌어도 지식은 남는다** — 지난주 사내 보안 강화로 Windows 전면 업그레이드가 있었다. 컴퓨터가 리부트되면서 호환 문제로 Codex가 설치되지 않았고, 로컬에 남아있던 작업 내용이 싸그리 사라졌다. 예전엔 C 드라이브 파일 백업이 전부였는데, 이제는 LLM과 함께 쌓아온 컨텍스트와 학습시킨 흐름들을 어떻게 보관할 것인가가 새로운 과제가 됐다. 위키를 만들고 나서야 그 불안이 한결 줄었다.
+
+5. **위키는 시작 단계일 뿐이다** — 현재 위키는 작업 요약본에 가깝다. 내가 누구인지보다 무엇을 했는지에 집중되어 있다. 실제로 쓸모 있는 지식 베이스가 되려면 업무 경험이 쌓일수록 계속 채워나가야 하고, 특히 "왜 그렇게 판단했는가"라는 맥락이 더 담겨야 한다. 지금은 뼈대를 세운 것에 가깝다.
+
+---
+
+## Level 1: Schedule — 일일 인증 뉴스 자동화
+
+### Q1-1: 에이전트에게 맡긴 작업
+
+**최종 구현: WTO TBT 일일 브리핑 자동화**
+- **입력**: WTO ePing 공개 API (`https://eping.wto.org/api/v1/notifications/search`) + WTO 공식 API 이중화
+- **작업**: 전날 신규 TBT 통보문 수집 → 한국 수출 관련성 점수 산정 (HIGH_IMPACT_COUNTRIES +3, HIGH_IMPACT_SECTORS +2) → 상위 5건 추출
+- **출력**: Jekyll 포스트 `_posts/YYYY-MM-DD-wto-tbt-briefing.md` 자동 생성 → GitHub Pages 게시
+- **트리거**: GitHub Actions cron `0 0 * * 1-5` (평일 매일 오전 9시 KST), 수동 실행 버튼 지원
+- **파일**: `scripts/wto_tbt_briefing.py`, `.github/workflows/wto_tbt_daily.yml`
+
+**초기 시도 (반자동화)**: C2P 이메일(.eml) 업로드 기반 팀원 배정 이메일 초안 자동화
+- 구현 완료 (`scripts/process_newsletter.py`, `output/` 폴더), 하지만 매번 수동 업로드 필요 → "반자동화"로 판정
+- 완성하고 나서야 깨달았다. 내가 매일 파일을 올려야 실행되는 구조라면, 자율 루틴이 아니라 내가 트리거인 것이다. → WTO TBT 완전 자동화로 전환
+
+### Q1-2: 자율 태스크 설계에서 배운 교훈
+1. **"자동화"와 "반자동화"의 차이** — 처음엔 C2P 이메일 파이프라인을 완성했을 때 자동화라고 생각했다. 그런데 매일 아침 내가 파일을 업로드해야 돌아가는 구조였다. 자율 루틴의 핵심은 내가 자리를 비워도 실행된다는 것이다.
+2. **한계를 알고 시작하는 것과 모르고 시작하는 것** — WTO ePing이 C2P를 완전히 대체하지 못한다는 걸 알면서 선택했다. 실제로 각국 관보까지 스크래핑하려 했는데, 일부 국가 관보는 AI 접근 자체를 막아두고 있어서 벽에 부딪혔다. 소스를 열어두면 할루시네이션이 늘고, 소스를 제한하면 커버리지가 줄어드는 딜레마였다. 결국 WTO 공식 통보문으로만 한정했다 — 정확도를 택하고 커버리지는 나중으로 미뤘다. 완벽한 도구를 기다리는 것보다 작동하는 것으로 먼저 시작하고, 한계는 쓰면서 확인하는 게 낫다.
+3. **파이프라인이 살아있다는 것** — Actions가 처음 실패했을 때 당황했지만, 빈 결과라도 포스트가 올라오는 걸 보고 안도했다. "0건 수집"이라는 출력이 "정상 실행"의 증거였다. 오류로 멈추는 것과 빈 결과를 내는 것은 다르다.
+4. **자격증명은 코드 밖에** — 위키 작업 중 AI 대화 이력에 토큰이 남아있던 걸 발견한 이후로, 자격증명을 어디에 입력하는지 의식적으로 주의하게 됐다. GitHub Actions 작업 시에도 토큰 입력 전에 한 번 더 확인하는 습관이 생겼다. 보안 원칙을 외운 게 아니라 실제 경험이 먼저였다.
+
+### Q1-3: 유용한 자율 태스크의 핵심 요소
+
+이 태스크는 현재 C2P 구독과 병행해서 실제로 사용 중이다. 단순히 과제를 위해 만든 게 아니라, 장기적으로 C2P 구독을 대체할 수 있는지를 테스트하는 실험이다.
+
+C2P는 WTO에 통보되지 않은 각국 관보, 전문가 사설까지 커버한다는 점에서 가치가 있다. 그게 지금까지 구독을 유지해온 이유다. 하지만 매년 상당한 구독료가 발생하고 있어서, WTO ePing 공개 API로 어디까지 커버가 되는지 직접 검증해보고 싶었다.
+
+이 경험에서 유용한 자율 태스크의 조건을 정리하면:
+
+1. **실제 업무에서 쓰고 있어야 한다** — 테스트 환경에서만 도는 자동화는 개선이 안 된다. 실제로 쓰다 보면 "이 통보문은 C2P에선 나왔는데 여기선 안 잡힌다"는 구체적인 한계가 보인다. 그 피드백이 다음 버전을 만든다.
+2. **대체하려는 대상이 명확해야 한다** — "자동화"가 목적이 되면 안 된다. C2P 구독이라는 구체적인 대체 대상이 있어야 무엇이 부족한지 측정할 수 있다.
+3. **부분적으로 작동해도 가치가 있어야 한다** — WTO ePing이 C2P를 100% 대체 못 해도, 공개 통보문만 커버해도 그게 비용 절감으로 이어지는지 따져볼 수 있다. 완벽한 대체가 아니어도 테스트할 가치가 있었다.
+
+---
+
+## Level 2: Persistent Agent (보너스 +10)
+
+### 개요
+- Hermes Agent (https://github.com/nousresearch/hermes-agent) Docker로 설치
+- 지속 실행되는 자율 에이전트 구축
+
+### 구현 환경
+- **플랫폼**: Windows 11, Docker Desktop + PowerShell
+- **에이전트**: NousResearch Hermes Agent (`nousresearch/hermes-agent` Docker 이미지)
+- **모델**: Claude Opus 4.6 (Anthropic provider)
+- **실행 명령어**:
+  ```powershell
+  docker run -it -v ${HOME}/.hermes:/root/.hermes -e ANTHROPIC_API_KEY=sk-ant-... nousresearch/hermes-agent
+  ```
+
+### Q2-1: 에이전트에게 맡긴 작업
+
+**태스크**: WTO TBT/SPS 최신 통보문 모니터링 및 한국어 요약
+
+```
+WTO ePing (https://eping.wto.org) API를 사용해서 오늘 날짜 기준 최신 TBT/SPS 통보문 상위 5건을 가져와서 다음 형식으로 한국어로 요약해줘:
+- 통보번호, 통보국, 유형, 대상 제품 (HS코드 포함), 주요 내용, 의견제출 마감일
+한국 수출 기업에 영향이 큰 규제 변경사항 위주로 정렬해줘.
+```
+
+**실행 결과 (2026-06-10)**:
+- WTO ePing API에서 당일 통보문 5건 성공적으로 수집
+- 한국어 요약 자동 생성:
+  1. G/SPS/N/EU/956 — EU 동물사료용 향미화합물 승인 갱신
+  2. G/SPS/N/EU/957 — EU 제3국산 식품·사료 공식 관리 강화 (아르헨티나 땅콩 아플라톡신, 인도 커민씨 농약 검사빈도 상향 등)
+  3. G/SPS/N/KOR/846 — 한국 꿀벌 사료용 꿀·벌화분 동물검역 추가 (의견제출 마감 2026-08-09)
+  4. G/TBT/N/BHR/704/Rev.1 — GCC 7개국 잼·젤리·마멀레이드 기술규정
+  5. G/TBT/N/KWT/683/Rev.1 — GCC 쿠웨이트 측 동일 통보
+
+### Q2-2: Persistent Agent에서 배운 교훈
+
+1. **채팅창과 다를 게 없었다** — WTO 통보문 요약 태스크를 실행하고 결과를 받은 순간, 이건 그냥 ChatGPT에 물어보는 것과 다를 바 없다는 걸 깨달았다. Hermes Agent의 진짜 가치는 파일 읽기·쓰기와 자율적 멀티스텝 실행인데, 내 첫 태스크는 그 어느 것도 활용하지 않은 단순 질의응답이었다. 좋은 도구를 갖춰놓고 라면만 끓여먹는 기분이었다.
+
+2. **처음으로 터미널에서 작업했다** — 항상 채팅창이나 Claude Cowork 같은 UI 환경에서만 작업해왔는데, 이번에 처음으로 API 크레딧을 직접 결제하고 Docker를 띄우고 터미널에서 에이전트를 실행했다. 생각보다 별거 아니었다. 그리고 그 순간 조금 멋있었다.
+
+3. **이제 중요한 건 아이디어다** — Claude Cowork, Codex, Hermes Agent — 도구는 충분히 준비되어 있다. 커틀러리도 있고 식재료도 있다. 남은 건 무엇을 어떻게 만들지다. 다음 단계는 더 나은 도구를 찾는 게 아니라, 도구로 해결할 진짜 문제를 정의하는 것이다.
+
+4. **비용이 생각의 방식을 바꾼다** — 첫 실행이 "credit balance too low"로 막혔을 때, 처음으로 API 비용을 직접 결제했다. 그 이후로 달라진 게 있다. 채팅창에서는 길게 써도 됐는데, 이제는 질문을 보내기 전에 한 번 더 다듬게 됐다. 얼마나 나올지 모르니까 더 신중해진 것이다. 그러면서 어떻게 하면 더 효율적으로 말할 수 있을지를 고민하게 됐다. 비용이 발생한다는 사실이 의도치 않게 프롬프트를 다듬는 훈련이 됐다.
+
+### Q2-3: Persistent Agent를 유용하게 만드는 핵심 요소
+
+Q2-2에서 "채팅창과 다를 게 없었다"고 썼는데, 그게 Q2-3의 출발점이다. 그렇다면 Hermes가 진짜 의미있으려면 무엇이 달라야 하는가.
+
+1. **컨텍스트 창 입력을 없애야 한다** — 이번 태스크는 결국 내가 직접 명령어를 입력했다. Persistent Agent의 가치는 내가 아무것도 하지 않아도 돌아가는 것인데, 그 조건을 충족하지 못했다. 진짜로 유용해지려면 폴더에 파일만 두면 에이전트가 자동으로 감지해서 문서를 생성해주는 구조여야 한다. PDF를 sources/ 폴더에 넣으면 보고서 초안이 output/ 폴더에 나타나는 식으로.
+
+2. **비용 대비 가치가 명확해야 한다** — 위 구조가 기술적으로 가능하다는 건 알지만, 현재로선 굳이 Hermes로 할 이유가 없다. API 비용이 발생하고, Claude에서도 충분히 할 수 있기 때문이다. Persistent Agent가 정당화되려면 Claude 채팅창이 대체할 수 없는 태스크여야 한다 — 즉, 사람이 트리거를 누르지 않아도 자율적으로 실행되어야 하는 것.
+
+3. **에이전트의 출력이 사람도 읽을 수 있어야 한다** — 터미널에서 처음 작업해보니, Hermes가 긴 내용을 `.txt` 파일로 축약해서 저장했다. 에이전트 입장에서는 메모리 관리에 유리할지 몰라도, 내가 중간 과정을 읽고 확인하기가 불편했다. 에이전트의 출력은 에이전트만 이해하면 되는 게 아니라 사람이 검토할 수 있는 형태여야 한다. 특히 공공기관 보고서처럼 Human-in-the-loop가 필수인 업무라면. 상시 구동 에이전트라면 Anthropic 콘솔에서 월별 지출 한도를 설정해두는 것도 필수다.
+
+---
+
+## Level 3: Company-Relevant Sandbox (보너스 +10)
+
+### 선택한 워크플로우
+**TBT 심층분석보고서 자동 초안 생성 파이프라인**
+- 실제 업무: WTO TBT 통보문/해외 관보 → 번역 → 6장 구조 보고서 초안 작성 → 내부 검토 → knowtbt.kr 공개 게시
+- 현황: 주당 7-8건 처리, 건당 약 2일 소요 (번역 0.5일 + 구조화 0.5일 + 초안 1일)
+- 샌드박스: 규제 원문 PDF 직접 입력 → Claude API 번역+구조 추출 → KTL master template 서식 초안 자동 생성
+- 실제 업무와 동일한 입력 방식: `python3 scripts/tbt_report_pipeline.py VNM408.pdf`
+
+### 산출물
+- **(a) 작동하는 샌드박스 에이전트**: `scripts/tbt_report_pipeline.py`
+  - **입력**: 규제 원문 PDF 파일 (베트남어, 영어 등 다국어 지원)
+  - **처리**: Claude API가 PDF를 직접 읽어 번역 + KTL 서식 필드 구조 추출
+  - **출력**: KTL 6장 보고서 초안 마크다운 → `output/sandbox-reports/`
+  - API key 없는 환경에서는 빈 템플릿 구조 생성 (graceful degradation)
+  - 테스트 파일: `sources/VNM408.pdf` (베트남 내무부 제품 위험도 분류 규정)
+- **(b) 1페이지 제안서**: `docs/level3-proposal.md` (수출지원센터장 수신)
+- **(c) 실제 데이터 반영 시 변화**: 아래 reflection 참고
+
+### Q3-1: 이 워크플로우를 선택한 이유
+
+TBT 심층분석보고서는 우리 팀이 매주 7-8건씩 생산하는 핵심 업무다. 초안을 잡아두면 훨씬 빠르게 작성할 수 있다는 걸 이미 알고 있었기 때문에, 그 초안 생성 단계를 자동화해보고 싶었다. 효과가 있다는 걸 아는 방식을 더 빠르게 만드는 시도였다.
+
+검색 소스를 공식 문서와 공식 사이트로 한정하면 품질이 좋다는 것도 직접 확인했다. AI가 출처를 임의로 생성하는 문제를 막으려면 입력 자체를 원문 PDF로 고정하는 게 맞다는 판단이 있었다.
+
+그리고 솔직히 말하면, 조사 업무가 많은 특성상 자동화가 진행될수록 자리가 위협받는다는 느낌도 든다. 그런데 실제로 일어나는 일은 반대다. 자동화로 확보한 시간만큼 더 많은 과제가 들어온다. 정부에서도 이 상황을 감지한 건지, 예전보다 1.5배 정도 더 많은 과제를 요청하고 있다. AI 없을 때보다 업무량이 오히려 폭증했다. 자동화가 일자리를 빼앗는 게 아니라, 처리 가능한 업무의 상한선을 높이는 방향으로 작동하고 있다.
+
+이 워크플로우를 선택한 이유를 한 줄로 정리하면 — 효율화의 과실이 여유가 아니라 더 많은 과제로 돌아온다면, 초안 생성이라도 자동화해서 핵심 판단에 쓸 에너지를 아껴야 한다.
+
+### Q3-2: 매니저 첫 번째 반대 의견 및 답변
+**예상 반대**: "AI가 생성한 보고서가 원문 근거 없이 잘못된 인증정보·기관명을 생성하면 대국민 서비스 신뢰성이 훼손된다. 책임 소재도 불명확하다."
+
+**답변**: 
+- 파이프라인은 AI 완성본이 아니라 **검토 가능한 초안**을 생성한다. 원문 근거가 없는 항목은 "원문상 확인되지 않음" / "공식자료 확인 필요"로 자동 표시되어 담당자가 어디를 검토해야 하는지 즉시 식별 가능하다.
+- 현재도 ChatGPT 초안을 담당자가 검토·수정하는 동일 구조로 운영 중이며, 책임 소재는 최종 승인 담당자에게 있다. 자동화는 이 책임 구조를 바꾸지 않는다.
+- 시범 운영(4주) 동안 수동 작성 보고서와 자동 초안을 병행하여 오류율을 측정하고, 통과 기준을 수립한 후 확대 적용한다.
+
+이 제안서를 실제로 제출할 의향이 있다. Phase 1은 공개 데이터만 사용하고 추가 시스템이 필요 없어, IT 승인 없이도 내일 당장 시작할 수 있기 때문이다.
+
+### Reflection: 실제 사내 데이터 적용 시 달라지는 것
+
+기술적으로 달라지는 것보다, 달라지는 게 무엇을 의미하는지가 더 중요하다.
+
+1. **커버리지가 달라진다** — 현재 샌드박스는 WTO에 공식 통보된 규제만 잡는다. 실제 업무에서 C2P를 쓰는 이유는 각국 관보, 전문가 사설 등 WTO 미통보 규제까지 커버하기 때문이다. 사내 데이터와 연동하면 이 80%를 잡을 수 있다. 그게 실현되면 C2P 구독을 줄이는 것도 검토할 수 있다.
+
+2. **초안의 품질이 달라진다** — 과거 보고서 데이터로 학습시키면 AI가 KTL 문체에 맞는 초안을 낸다. 지금은 형식만 맞고 문체는 다듬어야 한다. 그 다듬는 시간이 줄어드는 것이 실질적인 효율화다.
+
+3. **업무 구조가 달라진다** — 자동화로 확보되는 시간이 여유가 아니라 더 많은 과제로 채워진다는 걸 이미 경험하고 있다. 그렇다면 자동화의 의미는 "덜 일하는 것"이 아니라 "같은 시간에 더 높은 판단을 더 많이 하는 것"이다. 초안 생성을 AI에 넘기면, 사람은 TBT 협정 위배 여부 판단이나 기업 대응방안처럼 AI가 못 하는 영역에 집중할 수 있다.
+
+---
+
+## 자기 인터뷰 전문
+
+### AI 활용 TOP 3
+1. **TBT 규제 문서 번역·분석·보고서 작성** — 글로벌 관보 다국어 원문 번역 후 보고서 초안 자동 생성
+2. **홈페이지/코딩 작업** — AI 없이는 불가능한 수준의 개발 작업 수행 (이 사이트 포함)
+3. **일일 글로벌 인증·규제 뉴스레터 선별 및 요약**
+
+### TBT 보고서 작업 흐름
+- 관보 원문 → 번역 → 보고서 형식에 맞는 정보 수집 요청
+- ChatGPT 프로젝트에 참고파일 + 작업 흐름 학습 → "프로젝트 flow대로 작성해줘" 한 마디로 실행
+- **현재 개선 중**: AI가 "원문에 따르면", "검토 필요" 등 작성자용 코멘트를 보고서 본문에 삽입하는 문제
+
+### 뉴스레터 5단계 Flow
+1. C2P 이메일 전체 → AI에 붙여넣기
+2. AI가 수출 파급력·규제 파급력·주제 중복성 기준으로 우선순위 선별
+3. 담당자가 세부 내용 직접 검토 후 적합성 판단
+4. 팀원 2명에게 뉴스 1개씩 요약 요청
+5. 팀원 요약본 → AI 최종 검토 → 대국민 공개 사이트 업로드
+
+### AI 강점과 한계
+- **강점**: 요약, 보고서 초안 작성, 정보 구조화
+- **한계**: 인간 문체 재현 어려움, 룰베이스 특성으로 유연한 사고 부족
+
+### 미래 계획
+- KAIST 석사: AI 분석 능력 활용한 논문 작성, 수업 보조도구 활용

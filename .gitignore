@@ -1,0 +1,12 @@
+# C2P 메일 원본 (개인정보/회사 메일 보호)
+inbox/*.eml
+
+# Jekyll build output
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+
+# OS
+.DS_Store
+sources/*.pdf
