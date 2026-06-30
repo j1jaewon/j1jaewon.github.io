@@ -55,11 +55,15 @@ def calc_expected(work_date: date, checkin: timedelta, checkout_raw: timedelta,
     work_date = date on which 출근 was recorded.
     checkout_raw = time of day (timedelta from midnight) of 퇴근.
     crosses_midnight = True if 퇴근 is on the following calendar day.
+
+    Rules:
+    - Early check-in before shift start is ignored (clamped to shift start).
+    - Early/on-time checkout without overtime is treated as shift end (17:00 / 05:00).
+    - Overtime is calculated proportionally from shift end up to max (19:30 / 07:30).
     """
     shift = classify_shift(checkin, checkout_raw)
     special = is_special_day(work_date)
 
-    # Normalise checkout as offset from checkin's midnight
     checkout = checkout_raw + timedelta(days=1) if crosses_midnight else checkout_raw
 
     result = {
@@ -71,34 +75,47 @@ def calc_expected(work_date: date, checkin: timedelta, checkout_raw: timedelta,
     }
 
     if shift == "day":
-        # Day: 08:00–17:00 regular, 17:00–19:30 잔업
-        day_end = timedelta(hours=17)
-        janup_end = timedelta(hours=19, minutes=30)
+        day_start  = timedelta(hours=8)
+        day_end    = timedelta(hours=17)
+        janup_end  = timedelta(hours=19, minutes=30)
+
+        # Clamp checkin — early arrival doesn't count
+        effective_checkin  = max(checkin, day_start)
+        # Clamp checkout — leaving before/at 17:00 counts as 17:00
+        effective_checkout = max(checkout, day_end)
+        # Cap at max overtime end
+        effective_checkout = min(effective_checkout, janup_end)
+
+        overtime = max(timedelta(0), effective_checkout - day_end)
 
         if special:
             result["특근"] = 8.0
-            if checkout > janup_end - timedelta(minutes=10):
-                result["특근잔업"] = 2.0
+            result["특근잔업"] = round_half(overtime.total_seconds() / 3600)
         else:
             result["정취"] = 8.0
-            if checkout >= janup_end - timedelta(minutes=10):
-                result["잔업"] = 2.0
+            result["잔업"] = round_half(overtime.total_seconds() / 3600)
 
     else:  # night shift: 20:00–05:00 regular, 05:00–07:30 잔업
-        regular_end = timedelta(hours=29)       # 05:00 next day
-        janup_end = timedelta(hours=31, minutes=30)  # 07:30 next day
+        night_start = timedelta(hours=20)
+        regular_end = timedelta(hours=29)        # 05:00 next day
+        janup_end   = timedelta(hours=31, minutes=30)  # 07:30 next day
         simya_start = timedelta(hours=23)
-        simya_end = timedelta(hours=29, minutes=30)  # 05:30 next day
+        simya_end   = timedelta(hours=29, minutes=30)  # 05:30 next day
+
+        effective_checkin  = max(checkin, night_start)
+        effective_checkout = max(checkout, regular_end)
+        effective_checkout = min(effective_checkout, janup_end)
+
+        overtime = max(timedelta(0), effective_checkout - regular_end)
 
         if special:
             result["특근"] = 8.0
+            result["특근잔업"] = round_half(overtime.total_seconds() / 3600)
         else:
             result["정취"] = 8.0
-            if checkout >= janup_end - timedelta(minutes=10):
-                result["잔업"] = 2.0
+            result["잔업"] = round_half(overtime.total_seconds() / 3600)
 
-        # 심야: 23:00–05:30 overlap
-        simya = overlap_hours(checkin, checkout, simya_start, simya_end)
+        simya = overlap_hours(effective_checkin, effective_checkout, simya_start, simya_end)
         result["심야"] = round_half(simya)
 
     return result
