@@ -1,0 +1,5 @@
+streamlit
+xlrd
+openpyxl
+holidays
+pandas

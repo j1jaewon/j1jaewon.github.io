@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>근태 검증 대시보드</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      background: #f5f6fa;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: -0.3px; }
+    header .badge {
+      background: #e63946;
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-weight: 700;
+    }
+
+    /* ── Upload zone ── */
+    .upload-section {
+      max-width: 860px;
+      margin: 40px auto 0;
+      padding: 0 20px;
+    }
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 600px) { .upload-grid { grid-template-columns: 1fr; } }
+
+    .upload-card {
+      background: #fff;
+      border: 2px dashed #c8cfe0;
+      border-radius: 14px;
+      padding: 28px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+    }
+    .upload-card:hover, .upload-card.drag-over {
+      border-color: #4361ee;
+      background: #f0f3ff;
+    }
+    .upload-card.has-file { border-color: #2ec4b6; background: #f0fdfc; }
+    .upload-card input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-card .icon { font-size: 2rem; margin-bottom: 10px; }
+    .upload-card .label { font-size: 0.85rem; color: #6b7280; margin-top: 4px; }
+    .upload-card .filename {
+      font-size: 0.82rem; color: #2ec4b6; font-weight: 600;
+      margin-top: 8px; word-break: break-all;
+    }
+    .upload-card h3 { font-size: 0.95rem; font-weight: 700; }
+
+    .btn-verify {
+      width: 100%;
+      padding: 14px;
+      background: #4361ee;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s;
+      letter-spacing: 0.3px;
+    }
+    .btn-verify:hover { background: #3451d1; }
+    .btn-verify:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+    /* ── Spinner ── */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #4361ee;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Results ── */
+    #results { max-width: 1100px; margin: 36px auto 60px; padding: 0 20px; }
+
+    .summary-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .stat-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px 24px;
+      flex: 1;
+      min-width: 150px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .stat-card .val { font-size: 2rem; font-weight: 800; }
+    .stat-card .lbl { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+    .stat-card.red .val { color: #e63946; }
+    .stat-card.green .val { color: #2ec4b6; }
+    .stat-card.blue .val { color: #4361ee; }
+
+    /* employee cards */
+    .emp-card {
+      background: #fff;
+      border-radius: 14px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      overflow: hidden;
+    }
+    .emp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 22px;
+      cursor: pointer;
+      user-select: none;
+      gap: 12px;
+    }
+    .emp-header:hover { background: #f9fafb; }
+    .emp-name { font-weight: 700; font-size: 1rem; }
+    .emp-meta { font-size: 0.8rem; color: #6b7280; margin-top: 2px; }
+    .issue-badge {
+      background: #fef2f2;
+      color: #e63946;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+    .ok-badge {
+      background: #f0fdfa;
+      color: #2ec4b6;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 99px;
+    }
+    .chevron { font-size: 0.85rem; color: #9ca3af; transition: transform .2s; }
+    .emp-card.open .chevron { transform: rotate(180deg); }
+
+    .emp-body { display: none; padding: 0 22px 20px; }
+    .emp-card.open .emp-body { display: block; }
+
+    /* day table */
+    .day-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-top: 4px;
+    }
+    .day-table th {
+      background: #f3f4f6;
+      padding: 7px 10px;
+      text-align: center;
+      font-weight: 600;
+      color: #4b5563;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .day-table td {
+      padding: 7px 10px;
+      text-align: center;
+      border-bottom: 1px solid #f3f4f6;
+      vertical-align: middle;
+    }
+    .day-table tr:last-child td { border-bottom: none; }
+    .day-table tr.has-issue { background: #fff7f7; }
+    .day-table tr.has-issue td:first-child { border-left: 3px solid #e63946; }
+
+    .cell-ok { color: #374151; }
+    .cell-mismatch {
+      background: #fef2f2;
+      color: #e63946;
+      font-weight: 700;
+      border-radius: 4px;
+      padding: 2px 6px;
+    }
+    .cell-pair { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+    .cell-pair .recorded { font-size: 0.88rem; }
+    .cell-pair .expected { font-size: 0.72rem; color: #9ca3af; }
+    .cell-pair.diff .recorded { color: #e63946; }
+    .cell-pair.diff .expected { color: #2ec4b6; font-weight: 600; }
+
+    .error-box {
+      background: #fef2f2; border: 1px solid #fca5a5;
+      border-radius: 10px; padding: 16px 20px; color: #991b1b;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>근태 검증 대시보드</h1>
+  <span class="badge">BETA</span>
+</header>
+
+<div class="upload-section">
+  <form id="uploadForm">
+    <div class="upload-grid">
+      <div class="upload-card" id="tagCard">
+        <input type="file" name="tag_file" id="tagInput" accept=".xls,.xlsx" />
+        <div class="icon">🕐</div>
+        <h3>태그 로그 파일</h3>
+        <div class="label">출퇴근 기계 원본 데이터 (.xls)</div>
+        <div class="filename" id="tagName"></div>
+      </div>
+      <div class="upload-card" id="attCard">
+        <input type="file" name="attendance_file" id="attInput" accept=".xls,.xlsx" />
+        <div class="icon">📋</div>
+        <h3>근태현황 파일</h3>
+        <div class="label">중간관리자 기입 근태일보 (.xls)</div>
+        <div class="filename" id="attName"></div>
+      </div>
+    </div>
+    <button type="submit" class="btn-verify" id="verifyBtn" disabled>검증 실행</button>
+  </form>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    분석 중입니다…
+  </div>
+</div>
+
+<div id="results"></div>
+
+<script>
+  const tagInput = document.getElementById('tagInput');
+  const attInput = document.getElementById('attInput');
+  const tagCard  = document.getElementById('tagCard');
+  const attCard  = document.getElementById('attCard');
+  const tagName  = document.getElementById('tagName');
+  const attName  = document.getElementById('attName');
+  const verifyBtn = document.getElementById('verifyBtn');
+  const form = document.getElementById('uploadForm');
+  const loading = document.getElementById('loading');
+  const resultsDiv = document.getElementById('results');
+
+  function checkReady() {
+    verifyBtn.disabled = !(tagInput.files.length && attInput.files.length);
+  }
+
+  tagInput.addEventListener('change', () => {
+    if (tagInput.files[0]) {
+      tagName.textContent = tagInput.files[0].name;
+      tagCard.classList.add('has-file');
+    }
+    checkReady();
+  });
+
+  attInput.addEventListener('change', () => {
+    if (attInput.files[0]) {
+      attName.textContent = attInput.files[0].name;
+      attCard.classList.add('has-file');
+    }
+    checkReady();
+  });
+
+  // Drag & drop
+  [tagCard, attCard].forEach(card => {
+    card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drag-over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      const input = card.querySelector('input[type="file"]');
+      const nameEl = card.id === 'tagCard' ? tagName : attName;
+      if (e.dataTransfer.files[0]) {
+        input.files = e.dataTransfer.files;
+        nameEl.textContent = e.dataTransfer.files[0].name;
+        card.classList.add('has-file');
+      }
+      checkReady();
+    });
+  });
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    loading.style.display = 'block';
+    resultsDiv.innerHTML = '';
+    verifyBtn.disabled = true;
+
+    const fd = new FormData(form);
+    try {
+      const res = await fetch('/verify', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.error) {
+        resultsDiv.innerHTML = `<div class="error-box">⚠️ ${data.error}</div>`;
+      } else {
+        renderResults(data.results);
+      }
+    } catch(err) {
+      resultsDiv.innerHTML = `<div class="error-box">⚠️ 서버 오류: ${err.message}</div>`;
+    } finally {
+      loading.style.display = 'none';
+      verifyBtn.disabled = false;
+    }
+  });
+
+  function renderResults(results) {
+    const totalEmployees = results.length;
+    const issueEmployees = results.filter(r => r.issue_count > 0).length;
+    const totalIssues = results.reduce((s, r) => s + r.issue_count, 0);
+    const okEmployees = totalEmployees - issueEmployees;
+
+    const ITEMS = ['정취', '잔업', '특근', '특근잔업', '심야'];
+
+    resultsDiv.innerHTML = `
+      <div class="summary-bar">
+        <div class="stat-card blue">
+          <div class="val">${totalEmployees}</div>
+          <div class="lbl">검증 대상 직원</div>
+        </div>
+        <div class="stat-card red">
+          <div class="val">${issueEmployees}</div>
+          <div class="lbl">오류 발견 직원</div>
+        </div>
+        <div class="stat-card green">
+          <div class="val">${okEmployees}</div>
+          <div class="lbl">정상 직원</div>
+        </div>
+        <div class="stat-card red">
+          <div class="val">${totalIssues}</div>
+          <div class="lbl">총 불일치 항목 수</div>
+        </div>
+      </div>
+      ${results.map(emp => renderEmpCard(emp, ITEMS)).join('')}
+    `;
+
+    // toggle
+    document.querySelectorAll('.emp-header').forEach(h => {
+      h.addEventListener('click', () => h.closest('.emp-card').classList.toggle('open'));
+    });
+
+    // auto-open first issue card
+    const firstIssue = document.querySelector('.emp-card.has-issue');
+    if (firstIssue) firstIssue.classList.add('open');
+  }
+
+  function renderEmpCard(emp, ITEMS) {
+    const hasIssue = emp.issue_count > 0;
+    const badge = hasIssue
+      ? `<span class="issue-badge">⚠️ 오류 ${emp.issue_count}건</span>`
+      : `<span class="ok-badge">✓ 정상</span>`;
+
+    const rows = emp.days.map(d => {
+      const hasRowIssue = d.issues.length > 0;
+      const cells = ITEMS.map(key => {
+        const rec = (d.recorded[key] ?? 0);
+        const exp = (d.expected[key] ?? 0);
+        const diff = Math.abs(rec - exp) >= 0.5;
+        if (rec === 0 && exp === 0) return `<td>-</td>`;
+        if (diff) {
+          return `<td><div class="cell-pair diff">
+            <span class="recorded">${rec}h</span>
+            <span class="expected">→ ${exp}h</span>
+          </div></td>`;
+        }
+        return `<td><span class="cell-ok">${rec}h</span></td>`;
+      }).join('');
+
+      return `<tr class="${hasRowIssue ? 'has-issue' : ''}">
+        <td><strong>${d.day}일</strong></td>
+        ${cells}
+      </tr>`;
+    }).join('');
+
+    const table = emp.days.length ? `
+      <table class="day-table">
+        <thead>
+          <tr>
+            <th>날짜</th>
+            ${ITEMS.map(i => `<th>${i}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>` : `<p style="color:#9ca3af;font-size:.85rem">태그 데이터 없음</p>`;
+
+    return `
+      <div class="emp-card ${hasIssue ? 'has-issue' : ''}">
+        <div class="emp-header">
+          <div>
+            <div class="emp-name">${emp.name}</div>
+            <div class="emp-meta">${emp.days.length}일 근무 기록</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            ${badge}
+            <span class="chevron">▼</span>
+          </div>
+        </div>
+        <div class="emp-body">${table}</div>
+      </div>`;
+  }
+</script>
+</body>
+</html>
